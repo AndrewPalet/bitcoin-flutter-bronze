@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'coin_data.dart';
 import 'dart:io' show Platform;
+import 'dart:io';
+
+import 'coin_data.dart';
+import 'coin_data.dart';
+import 'coin_data.dart';
+import 'coin_data.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -10,6 +16,7 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
+  int fiatRate = 0;
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownItems = [];
@@ -48,11 +55,26 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+  void getData(String crypto, String fiat) async {
+    try {
+      CoinData coinData = CoinData(crypto, fiat);
+      var rate = await coinData.getCoinData();
+
+      setState(() {
+        fiatRate = rate;
+        print(rate);
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
   //TODO: Create a method here called getData() to get the coin data from coin_data.dart
 
   @override
   void initState() {
     super.initState();
+    HttpOverrides.global = new MyHttpOverrides();
+    getData('BTC', 'USD');
     //TODO: Call getData() when the screen loads up.
   }
 
@@ -78,7 +100,7 @@ class _PriceScreenState extends State<PriceScreen> {
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
                   //TODO: Update the Text Widget with the live bitcoin data here.
-                  '1 BTC = ? USD',
+                  '1 BTC = $fiatRate USD',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
@@ -98,5 +120,14 @@ class _PriceScreenState extends State<PriceScreen> {
         ],
       ),
     );
+  }
+}
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
